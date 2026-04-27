@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Documentor — Local AI Document Analyzer. Chat with your documents using Ollama or LM Studio.">
+  <title>Documentor — AI Document Analyzer</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
+</head>
+<body>
+
+<div id="app">
+  <!-- ─── Sidebar ──────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon">📄</div>
+        <span class="logo-text">Documentor</span>
+      </div>
+      <button class="btn btn-icon" id="btn-toggle-sidebar" title="Toggle sidebar">☰</button>
+    </div>
+
+    <div class="sidebar-section">
+      <span class="sidebar-section-title">Documents</span>
+      <button class="btn btn-sm" id="btn-rescan" title="Rescan folder">🔄 Scan</button>
+    </div>
+
+    <div class="file-list" id="file-list">
+      <div class="empty-state" id="file-empty-state">
+        <div class="empty-icon">📂</div>
+        <p>No documents loaded.<br>Configure a folder in Settings.</p>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-stats" id="sidebar-stats">
+        <span class="stat-badge"><strong id="stat-files">0</strong> files</span>
+        <span class="stat-badge"><strong id="stat-words">0</strong> words</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ─── Main Chat Area ──────────────────────────────────── -->
+  <main class="main-area">
+    <div class="chat-header">
+      <div class="chat-header-left">
+        <button class="btn btn-icon" id="btn-show-sidebar" title="Show sidebar" style="display:none;">☰</button>
+        <div class="connection-status" id="connection-status">
+          <span class="status-dot disconnected" id="status-dot"></span>
+          <span id="status-text">Disconnected</span>
+        </div>
+      </div>
+      <div class="chat-header-right">
+        <button class="btn btn-sm" id="btn-new-chat" title="New chat">✨ New Chat</button>
+        <button class="btn btn-sm" id="btn-report" title="Generate report">📊 Report</button>
+        <button class="btn btn-icon" id="btn-settings" title="Settings">⚙️</button>
+      </div>
+    </div>
+
+    <!-- Chat Messages -->
+    <div class="chat-messages" id="chat-messages">
+      <div class="welcome-screen" id="welcome-screen">
+        <div class="welcome-icon">📄</div>
+        <h1 class="welcome-title">Welcome to Documentor</h1>
+        <p class="welcome-subtitle">Connect your local LLM and point to a folder. Ask questions about your documents, generate reports, and analyze data.</p>
+        <div class="quick-actions">
+          <button class="quick-action" data-action="settings">
+            <span class="qa-icon">⚙️</span> Configure Settings
+          </button>
+          <button class="quick-action" data-action="report">
+            <span class="qa-icon">📊</span> Generate Report
+          </button>
+          <button class="quick-action" data-action="summarize">
+            <span class="qa-icon">📝</span> Summarize All Files
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Input -->
+    <div class="chat-input-area">
+      <div class="chat-input-wrapper">
+        <textarea id="chat-input" placeholder="Ask about your documents..." rows="1"></textarea>
+        <button id="send-btn" title="Send message" disabled>➤</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ─── Settings Panel ───────────────────────────────────────── -->
+<div class="settings-overlay" id="settings-overlay"></div>
+<div class="settings-panel" id="settings-panel">
+  <div class="settings-header">
+    <h2>⚙️ Settings</h2>
+    <button class="btn btn-icon" id="btn-close-settings">✕</button>
+  </div>
+  <div class="settings-body">
+
+    <div class="settings-group">
+      <div class="settings-group-title">🤖 LLM Connection</div>
+      <div class="form-field">
+        <label for="setting-provider">Provider</label>
+        <select id="setting-provider">
+          <option value="ollama">Ollama</option>
+          <option value="lmstudio">LM Studio</option>
+          <option value="custom">Custom (OpenAI-compatible)</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label for="setting-base-url">API Base URL</label>
+        <div class="form-row">
+          <div class="form-field" style="margin-bottom:0">
+            <input type="text" id="setting-base-url" placeholder="http://localhost:11434">
+          </div>
+          <button class="btn btn-sm" id="btn-test-connection">Test</button>
+        </div>
+        <div class="form-hint">Ollama: localhost:11434 · LM Studio: localhost:1234</div>
+      </div>
+      <div id="connection-result" class="connection-result"></div>
+      <div class="form-field">
+        <label for="setting-model">Model</label>
+        <select id="setting-model">
+          <option value="">— Connect to load models —</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label for="setting-temperature">Temperature: <span id="temp-value">0.7</span></label>
+        <input type="range" id="setting-temperature" min="0" max="2" step="0.1" value="0.7" style="cursor:pointer">
+      </div>
+      <div class="form-field">
+        <label for="setting-max-tokens">Max Context Tokens</label>
+        <input type="number" id="setting-max-tokens" value="8192" min="1024" max="131072" step="1024">
+        <div class="form-hint">Adjust based on your model's context window</div>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title">📂 Document Folders</div>
+      <div class="folder-list" id="folder-list">
+        <!-- Folders will be rendered here -->
+      </div>
+      <div class="folder-actions">
+        <button class="btn btn-sm" id="btn-add-folder">📁 Browse & Add Folder</button>
+        <button class="btn btn-sm btn-primary" id="btn-scan-all">🔄 Scan All</button>
+      </div>
+      <div id="scan-result" class="connection-result"></div>
+    </div>
+
+    <div class="settings-group">
+      <button class="btn btn-danger btn-sm" id="btn-clear-data" style="width:100%">🗑️ Clear All Data &amp; Reset</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Folder Browser Modal ─────────────────────────────────── -->
+<div class="modal-overlay" id="folder-browser-modal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <h3>📁 Select a Folder</h3>
+      <button class="btn btn-icon btn-sm" id="btn-close-browser">✕</button>
+    </div>
+    <div class="folder-browser-path" id="browser-path">
+      <button class="btn btn-sm" id="btn-browser-up" title="Go up">⬆️ Up</button>
+      <span class="browser-current-path" id="browser-current-path">/</span>
+    </div>
+    <div class="folder-browser-list" id="browser-list">
+      <!-- Directories rendered here -->
+    </div>
+    <div class="folder-browser-footer">
+      <span class="browser-selected-label" id="browser-selected-label">Select a folder above</span>
+      <button class="btn btn-sm btn-primary" id="btn-browser-select" disabled>✓ Select This Folder</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── File Preview Modal ───────────────────────────────────── -->
+<div class="modal-overlay" id="file-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">File Preview</h3>
+      <button class="btn btn-icon btn-sm" id="btn-close-modal">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- ─── Toast Container ──────────────────────────────────────── -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="/js/api.js"></script>
+<script src="/js/chat.js"></script>
+<script src="/js/settings.js"></script>
+<script src="/js/app.js"></script>
+
+</body>
+</html>

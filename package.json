@@ -1,0 +1,25 @@
+{
+  "name": "documentor",
+  "version": "1.0.0",
+  "description": "Local AI Document Analyzer — Chat with your documents using Ollama or LM Studio",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": ["ai", "document-analyzer", "chatbot", "ollama", "lm-studio"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "node-fetch": "^2.7.0",
+    "papaparse": "^5.5.2",
+    "pdf-parse": "^1.1.1",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}

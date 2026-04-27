@@ -1,0 +1,4 @@
+node_modules/
+.env
+.documentor-settings.json
+.DS_Store
